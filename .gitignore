@@ -1,0 +1,18 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Process outputs (L3 - not tracked)
+Outputs/
+
+# Dev lifecycle docs (Author-only, not for end users)
+_docs/
+_sandbox_tests/
+ITERATIONS.md
+
+# Author-only workflows (not for end users)
+.agent/workflows/sync-to-github.md
+.agent/workflows/generate-iteration-log.md
+.agent/workflows/init-version.md
+.agent/workflows/test.md
+.agent/workflows/audit.md
