@@ -1,9 +1,9 @@
 # 🏛️ EA Digital Twin Engine
-> **高管助理的极速外置大脑与工作流引擎 (金牌助理 v5.0)**
+> **高管助理的极速外置大脑与工作流引擎 (金牌助理 v5.1)**
 
-![Version](https://img.shields.io/badge/version-v5.0.0-blue)
+![Version](https://img.shields.io/badge/version-v5.1.0-blue)
 ![Architecture](https://img.shields.io/badge/architecture-Persona_Driven-orange)
-![Platform](https://img.shields.io/badge/platform-Antigravity-purple)
+![Platform](https://img.shields.io/badge/platform-Multi_Platform-green)
 
 ---
 
@@ -58,13 +58,25 @@
 本框架深度依赖大语言模型的“利益博弈常识”与“微操语义理解”，必须配合一流配置方可达到实战效果。
 
 ### 1. 推荐的驱动大模型 (LLMs)
-- **第一梯队 (旗舰闭源)**：优先推荐采用基于平台的 **Antigravity** 环境。强烈推荐搭载 **Gemini 3 / Gemini 3.1 Pro (High)** 环境，或采用 **Claude 3.5 Sonnet / 4.6 Opus**。这四大模型能最精准地把握体制内与商场上的言下之意。
+- **第一梯队 (旗舰闭源)**：强烈推荐搭载 **Gemini 3 / Gemini 3.1 Pro (High)** 或 **Claude 3.5 Sonnet / 4.6 Opus**。这四大模型能最精准地把握体制内与商场上的言下之意。
 - **特化适用 (国内顶流)**：针对极具中国本土特色的国企/政企官样文章及人际边界，可搭配使用国内大语言模型进行单点生成验证（推荐：DeepSeek V3 / R1，或智谱 GLM-4 等具有高阶长文本处理能力的模型）。
 
-### 2. 外部 MCP 工具配置 (重要强化)
-为了能彻底盘活部分功能，建议使用者在平台环境中配置以下 MCP (Model Context Protocol) 插件：
-- **`notebooklm-mcp`**：在处理 **[行业简报]** 与 **[VIP情报]** 时，当你拥有超长研报或上百页履历文件，借助此 MCP 让 AI 抓取海量文献，可保障输出内容的零幻觉与高精度。
-- **图像生成 MCP (如 `nanobanana` 等)**：在使用 **[图文可视化 Viz_Enhancer]** 时，配置此生图工具，可让指令真正落到实处，一键生成商务风格的配图素材。
+### 2. 兼容的 Agent 平台
+本 Skill 采用**能力槽位 (Capability Slots)** 架构，不绑定任何特定平台。以下环境均可运行：
+- **Antigravity**：`.agent/instructions.md` 自动注入，开箱即用。
+- **OpenClaw 及类似 Skill 编排平台**：平台读取 SKILL.md 后自动匹配已安装的其他 Skill/工具。
+- **Cursor / Windsurf / Claude Code**：将 SKILL.md 首行的 `Auto_Load_Rule` 内容复制到对应平台的配置文件中（如 `.cursorrules`、`CLAUDE.md`）。
+- **其他 Agent 工具**：手动告知 AI "读取 SKILL.md 并按照它执行" 即可。
+
+### 3. 外部能力增强（可选，非必需）
+本系统的 14 大核心模块**无需任何外部工具即可完整运行**。以下工具可进一步增强特定场景：
+
+| 能力槽位 | 推荐工具 | 增强效果 |
+|:---|:---|:---|
+| 🔍 深度文档研究 | `notebooklm-mcp`、`perplexity` 等 | 超长研报/PDF 零幻觉深度提取 |
+| 🌐 联网搜索 | `tavily-search` 等 | 实时行业动态/VIP 最新情报 |
+| 🎨 图像生成 | 平台内置生图工具 | 一键生成商务风格信息图 |
+| 🌏 多语言翻译 | 专业翻译 MCP/Skill | 涉外致辞/接待材料高精度翻译 |
 
 ---
 
@@ -86,13 +98,19 @@ EA-Digital-Twin/
 │   ├── Expense_Log.json      # [费用管理] 记录日常经费支出与预算对撞
 │   └── (其他运行时配置)
 └── .agent/
-    ├── instructions.md       # L0 强制安全规则与执行拦截网
+    ├── instructions.md       # 轻量引导器（仅指向 SKILL.md）
     └── workflows/            # 配置指令自动化引导脚本 (init/add-boss/config)
 ```
 
 ---
 
 ## 🔄 最新动态 (Changelog)
+
+### v5.1.0 (2026-05-07)
+* **🔌 能力槽位架构 (Capability Slots)**：引入外部能力协作声明机制，Skill 不再绑定任何特定工具名。AI 自动扫描环境中可用的工具/MCP/Skill 进行匹配，未匹配到的自动走降级方案。
+* **🌍 跨平台通用化**：SKILL.md 成为唯一真相源，所有关键规则（安全底线、输出规范、文件分类）从 `instructions.md` 合并入 SKILL.md。现可在 Antigravity、OpenClaw、Cursor、Windsurf 等任意 Agent 平台上运行。
+* **⚡ Token 效率优化**：`instructions.md` 从 45 行瘦身至 6 行，每轮注入 Token 税降低约 90%。
+* **🛡️ MCP 降级策略**：长文本预处理（Step 0）新增三级降级路径（增强/标准/基础），不再因缺少特定 MCP 而阻断流程。
 
 ### v5.0.0 (2026-04-03)
 * **🎉 M5 里程碑正式发布**：EA Digital Twin Engine 架构全面封板。
