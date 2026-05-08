@@ -1,10 +1,10 @@
 ---
 name: ea-digital-twin
-version: v5.1.0
-description: 高管助理的极速外置大脑与工作流引擎（金牌助理版 v5.0）。涵盖行业简报、跨部门督办、会议准备、纪要、宴请接待、人际往来、代笔致辞、危机兜底、VIP情报、数据可视化等全场景执行能力。
+version: v5.1.1
+description: 高管助理的极速外置大脑与工作流引擎（金牌助理版 v5.1）。涵盖行业简报、跨部门督办、会议准备、纪要、宴请接待、人际往来、代笔致辞、危机兜底、VIP情报、数据可视化等全场景执行能力。
 Auto_Load_Rule: 【强制】本工作区内收到的任何用户输入，AI 必须先完整读取本 SKILL.md 再执行任何输出。
 Skill_ID: EA_DIGITAL_TWIN_005
-Title: EA Digital Twin (金牌助理 v5.0)
+Title: EA Digital Twin (金牌助理 v5.1)
 Role_Level: Senior EA Execution Core
 Main_References: /References/User_Profile.md, /References/Constraints.md, /References/Feedback_Log.json, /References/Expense_Log.json, /References/Project_Log.json
 Boss_Personas: /References/Bosses/
@@ -61,9 +61,10 @@ Sub_Skill_Library: /Prompts/Biz_Briefing.md, /Prompts/Cross_Dept_Memo.md, /Promp
 
 ### Step -1: 每日前置扫描 (Daily Scan Hook) — 强制执行
 - **触发条件**：每次对话开始，无论用户输入内容为何，必须先执行此步骤。
+- **前置条件**：若当前环境不支持文件读写，静默跳过此步骤。
 - **执行动作**：
   1. 静默读取 `/References/Project_Log.json` 中的 `last_scan_date` 字段。
-  2. 若 `last_scan_date` 为空或与今日日期不同 → 执行 `Project_Tracker.md` 中定义的每日扫描逻辑，将逾期/今日到期任务预警输出在本次回复**最顶部**，然后更新 `last_scan_date` 为今日日期。
+  2. 若文件不存在或 `last_scan_date` 为空或与今日日期不同 → 执行 `Project_Tracker.md` 中定义的每日扫描逻辑，将逾期/今日到期任务预警输出在本次回复**最顶部**，然后更新 `last_scan_date` 为今日日期。
   3. 若 `last_scan_date` 与今日相同 → 静默跳过，不输出任何内容。
 
 ### Step 0: 长文本/材料预处理 (Material Preprocessing)
@@ -124,6 +125,7 @@ Sub_Skill_Library: /Prompts/Biz_Briefing.md, /Prompts/Cross_Dept_Memo.md, /Promp
   4. 若涉及预处理材料，根据 Persona 风格"去水化"。
 - 极简 Markdown 格式输出。严禁自我介绍或过程描述。
 - **视觉执行引擎**：仅在识别到可视化需求时匹配【🎨 图像生成】能力槽位。禁止艺术化渲染，强制输出商务信息图。若未匹配到生图工具，输出 Mermaid 图表代码或结构化表格。
+- **情境模板匹配**：生成完毕后，若 `/References/Templates/` 目录存在且不为空，静默比对当前任务与已有模板的相似度。若匹配度高，在输出末尾附一行提示：`💾 此类任务已有模板 [模板名]，下次可直接说「按 [模板名] 出一份」。`。若不匹配或目录不存在，不做任何提示。
 
 ### Step 4: 附加智囊层 (On-Demand Sidebar)
 - **触发条件 A**：用户输入包含 `[tip=on]` 时直接执行。
@@ -158,15 +160,28 @@ Sub_Skill_Library: /Prompts/Biz_Briefing.md, /Prompts/Cross_Dept_Memo.md, /Promp
   "boss": "[老板称呼]",
   "trait": "[规则名称]",
   "evidence": "[用户原话]",
-  "action": "[执行指令]"
+  "action": "[执行指令]",
+  "created_at": "YYYY-MM-DD",
+  "status": "active"
 }
 ```
+
+**写入前冲突检测**：
+1. 扫描 Feedback_Log.json 中同一 boss 的已有 `active` 条目。
+2. 若发现语义相反的旧条目（如旧条目说"不喝茅台"，新条目说"最近又开始喝茅台"）→ 将旧条目的 `status` 改为 `"superseded"`，并在旧条目中追加 `"superseded_by": "[新条目 id]"`。
+3. 向用户确认："检测到与旧记录 [SHIFT_XXX] 冲突，已自动以最新记录为准。"
 
 **写入后强制验证（Read-After-Write）**：
 1. 追加条目，更新 `last_updated`。
 2. 立即重新读取确认 `id` 存在。
 3. 成功 → "已记录：[规则]，下次自动应用。"
 4. 失败 → 立即告知用户，严禁假装成功。
+
+### 情境模板存储
+当用户明确说出"存为模板"、"保存这个格式"、"下次还用这个版式"等类似意图时：
+1. 提取当前输出的结构骨架（去除具体业务内容，保留格式框架、数据源指引、Boss 关联）。
+2. 写入 `/References/Templates/[模板名].md`。
+3. 确认："已保存为模板 『[模板名]』，下次可直接说「按 [模板名] 出一份」即可调用。"
 
 ---
 
@@ -183,5 +198,5 @@ Sub_Skill_Library: /Prompts/Biz_Briefing.md, /Prompts/Cross_Dept_Memo.md, /Promp
 | 层级 | 定义 | Git 同步 | 范围 |
 |:---|:---|:---:|:---|
 | **L1 - Agent 能力** | 定义 Agent 是谁、能做什么 | ✅ | SKILL.md, Prompts/*, References/Bosses/*, References/Constraints.md, References/Examples/*, .agent/*, README.md |
-| **L2 - Agent 记忆** | 从用户反馈中学到的规则 | ✅ | References/Feedback_Log.json, References/User_Profile.md |
+| **L2 - Agent 记忆** | 从用户反馈中学到的规则 | ✅ | References/Feedback_Log.json, References/User_Profile.md, References/Templates/* |
 | **L3 - 过程产出** | 任务交付物和运行时数据 | ❌ | Outputs/*, References/Project_Log.json, References/Expense_Log.json |
